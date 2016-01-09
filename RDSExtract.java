@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.Console;
 import java.util.regex.*;
 
 public class ORMExtract {
@@ -26,12 +27,12 @@ public class ORMExtract {
 	
 	//ServiceOrder (OrderIdentificationNumber is a notail case)
 	//CareProviderInvolvement and MedicationDispense will be parsed separately
-	public static String[] serviceOrder = {"OrderingLocationCode", "OrderingLocationDescription", "OrderDateTime", "OrderStatusCode", 
+	public static String[] serviceOrder = {"OrderingLocationCode", "OrderingLocationDescription", "OrderStatusCode", 
 			"OrderStatusDescription", "DosageFrequencyCode", "DosageFrequencyDescription", "DispenseDosageAmountUnitCode", 
 			"DispenseQuantityAmount", "DispenseQuantityUnitCode", "DispenseQuantityUnitDescription", "DispenseStrengthAmount", 
 			"DispenseStrengthUnitCode", "DispenseDateTime", "DispenseInstructionDescription", "DrugCode", "DrugName", "DrugFormCode", 
 			"DrugFormDescription", "DispenseTypeCode", "DurationCode", "DurationDescription", "PharmacistInterventionIndicator", 
-			"PrescriptionIdentificationNumber", "PrescriptionSequenceNumber", "ChangedOn"};
+			"PrescriptionIdentificationNumber", "PrescriptionSequenceNumber", "ChangedOn", "OrderDetailsGroup"};
 	//CareProviderInvolvement
 	public static String[] careProviderInvolvement = {"LicenseNumber", "Name", "CareProviderRoleCode", "CareProviderRoleDescription"};
 	
@@ -126,7 +127,7 @@ public class ORMExtract {
 		for (String str: serviceOrder)
 		{
 			if (str == serviceOrder[serviceOrder.length - 1])
-				SchemaServiceOrder += (str + strEnter);
+				SchemaServiceOrder += ("OrderDateTime" + strEnter);
 			else 
 				SchemaServiceOrder += (str + strSep);
 		}
@@ -289,7 +290,20 @@ public class ORMExtract {
 			
 			if (m.find())
 			{
-				strParseNL += m.group(1);
+				if (str == "OrderDetailsGroup") 
+				{
+					Pattern p2 = Pattern.compile("<[^<]*" + "OrderDateTime" + ">([^<]*)<[^>]*" + "OrderDateTime" + ">", Pattern.DOTALL);
+					String tmp = m.group(1);
+					Matcher m2 = p2.matcher(m.group(1));
+					if (m2.find())
+					{
+						strParseNL += m2.group(1);
+					}
+				}
+				else
+				{
+					strParseNL += m.group(1);
+				}
 				if (str == "PrescriptionIdentificationNumber")
 					strPrescriptionID = m.group(1);
 				if (str == "PrescriptionSequenceNumber")
